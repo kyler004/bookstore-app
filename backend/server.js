@@ -5,6 +5,7 @@ import morgan from "morgan";
 import helmet from "helmet";
 import mongoose from "mongoose";
 import Book from "./models/Book.js";
+import bookRoutes from "./routes/bookRoutes.js";
 
 const app = express();
 
@@ -27,6 +28,8 @@ mongoose
     console.error("MongoDB Connection Error:", error.message);
     process.exit(1);
   });
+
+app.use("/api/books", bookRoutes);
 
 app.get("/", (req, res) => {
   res.send("Bookstore API is running and Database is living");

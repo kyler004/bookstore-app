@@ -1,11 +1,21 @@
 import React from "react";
+import BookList from "./components/BookList";
 
 function App() {
   return (
-    <div className="text-center p-4 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-blue-600">Bookstore App</h1>
-      <p>Frontend is ready!</p>
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-blue-600 text-white py-6 shadow-md">
+        <div className="container mx-auto px-4">
+          <h1 className="text-4xl font-bold">Bookstore</h1>
+          <p className="mt-2 opacity-90">Discover your next great read</p>
+        </div>
+      </header>
+
+      <main>
+        <BookList />
+      </main>
     </div>
   );
 }
+
 export default App;
