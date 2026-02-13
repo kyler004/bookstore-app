@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import api from "../services/api";
+import BookForm from "./BookForm";
 
 function BookList() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -19,7 +21,11 @@ function BookList() {
     };
 
     fetchBooks();
-  }, []); // Empty dependency array = run once on mount
+  }, [refreshKey]); // Empty dependency array = run once on mount
+
+  const handleBookAdded = () => {
+    setRefreshKey((prevKey) => prevKey + 1);
+  };
 
   if (loading)
     return <div className="text-center py-10 text-xl">Loading books...</div>;
@@ -41,6 +47,7 @@ function BookList() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <BookForm onBookAdded={handleBookAdded} />
       <h2 className="text-3xl font-bold mb-6 text-gray-800">
         Our Book Collection
       </h2>
