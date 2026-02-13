@@ -1,8 +1,10 @@
 import React from "react";
+import { Toaster } from "react-hot-toast";
 import BookList from "./components/BookList";
 function App() {
   return (
     <div className="min-h-screen">
+      <Toaster position="top-right" reverseOrder={false} />
       <header className="border-b border-gray-100 py-8 sticky top-0 z-40 backdrop-blur-md bg-white/80">
         <div className="container mx-auto px-4 flex items-center justify-between">
           <div>

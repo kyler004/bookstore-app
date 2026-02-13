@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 import api from "../services/api";
+import ConfirmModal from "./ConfirmModal";
 
-function BookForm({ onBookAdded, onCancel }) {
+function BookForm({ onBookAdded, onCancel, initialData }) {
   const [formData, setFormData] = useState({
     title: "",
     author: "",
@@ -15,6 +17,22 @@ function BookForm({ onBookAdded, onCancel }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        title: initialData.title || "",
+        author: initialData.author || "",
+        description: initialData.description || "",
+        genre: initialData.genre || "",
+        price: initialData.price?.toString() || "",
+        isbn: initialData.isbn || "",
+        stock: initialData.stock?.toString() || "0",
+        coverImage: initialData.coverImage || "",
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -24,43 +42,62 @@ function BookForm({ onBookAdded, onCancel }) {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
+    if (e) e.preventDefault();
 
     // Basic client-side check
     if (!formData.title.trim() || !formData.author.trim() || !formData.price) {
       setError("Title, author, and price are required");
-      setLoading(false);
+      toast.error("Please fill in all required fields");
       return;
     }
 
+    if (initialData && !isConfirmOpen) {
+      setIsConfirmOpen(true);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+    setSuccess(false);
+
     try {
-      await api.createBook({
+      const bookData = {
         ...formData,
         price: parseFloat(formData.price),
         stock: parseInt(formData.stock, 10) || 0,
-      });
+      };
+
+      if (initialData) {
+        await api.updateBook(initialData._id, bookData);
+        toast.success("Book updated successfully!");
+      } else {
+        await api.createBook(bookData);
+        toast.success("Book added to collection!");
+      }
+
       setSuccess(true);
-      setFormData({
-        // reset form
-        title: "",
-        author: "",
-        description: "",
-        genre: "",
-        price: "",
-        isbn: "",
-        stock: "0",
-        coverImage: "",
-      });
+      if (!initialData) {
+        setFormData({
+          title: "",
+          author: "",
+          description: "",
+          genre: "",
+          price: "",
+          isbn: "",
+          stock: "0",
+          coverImage: "",
+        });
+      }
+
       setTimeout(() => {
-        onBookAdded(); // tell parent to refresh list and close modal
-      }, 1000);
+        onBookAdded();
+      }, 800);
     } catch (err) {
       setError(err.message);
+      toast.error(err.message || "Something went wrong");
     } finally {
       setLoading(false);
+      setIsConfirmOpen(false);
     }
   };
 
@@ -228,7 +265,7 @@ function BookForm({ onBookAdded, onCancel }) {
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 py-3 px-6 text-gray-700 font-semibold bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors"
+            className="flex-1 py-3 px-6 text-gray-700 font-semibold bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors active:scale-95"
           >
             Cancel
           </button>
@@ -241,10 +278,26 @@ function BookForm({ onBookAdded, onCancel }) {
                 : "bg-blue-600 hover:bg-blue-700 active:scale-95"
             }`}
           >
-            {loading ? "Adding Book..." : "Add to Collection"}
+            {loading
+              ? initialData
+                ? "Updating..."
+                : "Adding..."
+              : initialData
+                ? "Update Information"
+                : "Add to Collection"}
           </button>
         </div>
       </form>
+
+      <ConfirmModal
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleSubmit}
+        title="Confirm Update"
+        message={`Are you sure you want to update the details for "${formData.title}"?`}
+        confirmText="Yes, Update"
+        type="info"
+      />
     </div>
   );
 }
